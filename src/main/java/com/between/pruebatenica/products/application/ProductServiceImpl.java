@@ -3,8 +3,9 @@ package com.between.pruebatenica.products.application;
 import com.between.pruebatenica.config.cache.CacheConfig;
 import com.between.pruebatenica.products.domain.ProductRetail;
 import com.between.pruebatenica.products.domain.ProductService;
-import com.between.pruebatenica.products.domain.ProductServiceException;
+import com.between.pruebatenica.products.domain.ProductNotFoundException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,8 +17,8 @@ public class ProductServiceImpl implements ProductService {
 
     private final WebClient webClient;
 
-    public ProductServiceImpl(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:3001").build();
+    public ProductServiceImpl(WebClient.Builder webClientBuilder, @Value("${external.product-service.base-url}") String baseUrl) {
+        this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
     /**
@@ -42,7 +43,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Flux<ProductRetail> getSimilarProductsFallback(String productId, Throwable throwable) {
-        throw new ProductServiceException(
+        throw new ProductNotFoundException(
                 "Failed to retrieve similar products for productId: " + productId + ". Reason: " + throwable.getMessage(),
                 throwable
         );
@@ -62,13 +63,10 @@ public class ProductServiceImpl implements ProductService {
         if (isNullOrBlank(productIds)) {
             return Flux.empty();
         }
-
-        String[] productIdsArray = parseProductIds(productIds);
-
+        var productIdsArray = parseProductIds(productIds);
         if (productIdsArray.length > 1) {
             return getMultipleProductDetails(productIdsArray);
         }
-
         return getSingleProductDetail(productIdsArray[0]);
     }
 
@@ -77,7 +75,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private String[] parseProductIds(String productIds) {
-        String cleanedProductIds = productIds.replaceAll("[\\[\\]]", "");
+        var cleanedProductIds = productIds.replaceAll("[\\[\\]]", "");
         return cleanedProductIds.split(",");
     }
 
