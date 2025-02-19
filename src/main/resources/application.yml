@@ -7,7 +7,7 @@ external:
 
 resilience4j.circuitbreaker:
   instances:
-    similarProductscircuitBreaker:
+    similarProductsCircuitBreaker:
       registerHealthIndicator: true
       slidingWindowSize: 10
       minimumNumberOfCalls: 5
