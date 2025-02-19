@@ -1,9 +1,11 @@
 # Similar Products API
 
 ## Description
+
 This project exposes a REST API to retrieve products similar to a given product.
 
 ## Requirements
+
 - Java 21
 - Gradle 8.0 or later
 - Docker
