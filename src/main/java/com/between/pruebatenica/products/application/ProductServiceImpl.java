@@ -1,12 +1,13 @@
 package com.between.pruebatenica.products.application;
 
 import com.between.pruebatenica.config.cache.CacheConfig;
+import com.between.pruebatenica.products.domain.ProductNotFoundException;
 import com.between.pruebatenica.products.domain.ProductRetail;
 import com.between.pruebatenica.products.domain.ProductService;
-import com.between.pruebatenica.products.domain.ProductNotFoundException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -32,13 +33,13 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Cacheable(value = CacheConfig.USERS_INFO_CACHE, unless = "#result == null")
-    @CircuitBreaker(name = "similarProductscircuitBreaker", fallbackMethod = "getSimilarProductsFallback")
+    @CircuitBreaker(name = "similarProductsCircuitBreaker", fallbackMethod = "getSimilarProductsFallback")
     public Flux<ProductRetail> getSimilarProducts(String productId) {
         return this.webClient.get()
                 .uri("/product/{productId}/similarids", productId)
                 .retrieve()
                 .bodyToFlux(String.class)
-                .flatMap(this::getProductDetails)
+                .flatMap(this::getProductDetailsByProductId)
                 .filter(product -> product != null && product.id() != null);
     }
 
@@ -49,29 +50,16 @@ public class ProductServiceImpl implements ProductService {
         );
     }
 
-    /**
-     * Given a string of product ids (comma or bracket separated),
-     * returns a flux of products for those ids.
-     * If the string is empty or null, returns an empty flux.
-     * If the string contains a single id, calls {@link #getSingleProductDetail(String)},
-     * if it contains multiple ids, calls {@link #getMultipleProductDetails(String[])}.
-     *
-     * @param productIds the string of product ids
-     * @return a flux of products for the given ids
-     */
-    private Flux<ProductRetail> getProductDetails(String productIds) {
+    private Flux<ProductRetail> getProductDetailsByProductId(String productIds) {
         if (isNullOrBlank(productIds)) {
             return Flux.empty();
         }
         var productIdsArray = parseProductIds(productIds);
-        if (productIdsArray.length > 1) {
-            return getMultipleProductDetails(productIdsArray);
-        }
-        return getSingleProductDetail(productIdsArray[0]);
+        return getProductDetails(productIdsArray);
     }
 
     private boolean isNullOrBlank(String productIds) {
-        return productIds == null || productIds.isBlank();
+        return productIds == null || productIds.isBlank() || productIds.equals("[]");
     }
 
     private String[] parseProductIds(String productIds) {
@@ -79,26 +67,18 @@ public class ProductServiceImpl implements ProductService {
         return cleanedProductIds.split(",");
     }
 
-    private Flux<ProductRetail> getMultipleProductDetails(String[] productIdsArray) {
+    private Flux<ProductRetail> getProductDetails(String[] productIdsArray) {
         return Flux.fromArray(productIdsArray)
                 .flatMap(this::fetchProductDetails);
-    }
-
-    private Flux<ProductRetail> getSingleProductDetail(String productId) {
-        return this.webClient.get()
-                .uri("/product/{productId}", productId)
-                .retrieve()
-                .bodyToMono(ProductRetail.class)
-                .flux();
     }
 
     private Flux<ProductRetail> fetchProductDetails(String productId) {
         return this.webClient.get()
                 .uri("/product/{productId}", productId)
                 .retrieve()
-                .onStatus(httpStatusCode -> httpStatusCode.is4xxClientError(),
+                .onStatus(HttpStatusCode::is4xxClientError,
                         response -> Mono.empty())
-                .onStatus(httpStatusCode -> httpStatusCode.is5xxServerError(),
+                .onStatus(HttpStatusCode::is5xxServerError,
                         response -> Mono.empty())
                 .bodyToFlux(ProductRetail.class);
     }
