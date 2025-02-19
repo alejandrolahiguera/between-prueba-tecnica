@@ -3,6 +3,7 @@ package com.between.pruebatenica.products.application;
 import com.between.pruebatenica.config.cache.CacheConfig;
 import com.between.pruebatenica.products.domain.ProductRetail;
 import com.between.pruebatenica.products.domain.ProductService;
+import com.between.pruebatenica.products.domain.ProductServiceException;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Cacheable(value = CacheConfig.USERS_INFO_CACHE, unless = "#result == null")
-    @CircuitBreaker(name = "getSimilarProductsCircuitBreaker", fallbackMethod = "getSimilarProductsFallback")
+    @CircuitBreaker(name = "similarProductscircuitBreaker", fallbackMethod = "getSimilarProductsFallback")
     public Flux<ProductRetail> getSimilarProducts(String productId) {
         return this.webClient.get()
                 .uri("/product/{productId}/similarids", productId)
@@ -41,8 +42,10 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private Flux<ProductRetail> getSimilarProductsFallback(String productId, Throwable throwable) {
-        System.out.println("ha entrado");
-        return Flux.empty();
+        throw new ProductServiceException(
+                "Failed to retrieve similar products for productId: " + productId + ". Reason: " + throwable.getMessage(),
+                throwable
+        );
     }
 
     /**

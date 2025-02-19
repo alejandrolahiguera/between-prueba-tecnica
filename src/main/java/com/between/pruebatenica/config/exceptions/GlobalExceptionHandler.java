@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ErrorResponse> handleBadRequest(IllegalArgumentException ex) {
-        logger.error("Bad request error: {}", ex.getMessage(), ex);
+        //logger.error("Bad request error: {}", ex.getMessage(), ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WebClientResponseException.class)
     public ResponseEntity<ErrorResponse> handleWebClientResponseException(WebClientResponseException ex) {
-        logger.error("WebClient error: {} {} {}", ex.getStatusCode(), ex.getResponseBodyAsString(), ex.getMessage(), ex);
+        //logger.error("WebClient error: {} {} {}", ex.getStatusCode(), ex.getResponseBodyAsString(), ex.getMessage(), ex);
 
         if (ex.getStatusCode().is4xxClientError()) {
             ErrorResponse errorResponse = new ErrorResponse(
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ErrorResponse> handleInternalServerError(Exception ex) {
-        logger.error("Internal server error: {}", ex.getMessage(), ex);
+        //logger.error("Internal server error: {}", ex.getMessage(), ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

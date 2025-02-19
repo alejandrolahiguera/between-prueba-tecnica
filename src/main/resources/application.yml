@@ -3,10 +3,12 @@ server:
 
 resilience4j.circuitbreaker:
   instances:
-    getSimilarProductsCircuitBreaker:
+    similarProductscircuitBreaker:
       registerHealthIndicator: true
-      failureRateThreshold: 50
-      waitDurationInOpenState: 10000ms
-      slidingWindowSize: 100
-      permittedNumberOfCallsInHalfOpenState: 10
+      slidingWindowSize: 10
       minimumNumberOfCalls: 5
+      permittedNumberOfCallsInHalfOpenState: 3
+      automaticTransitionFromOpenToHalfState: true
+      waitDurationInOpenState: 5s
+      failureRateThreshold: 50
+      eventConsumerBufferSize: 10
