@@ -1,0 +1,12 @@
+server:
+  port: 5000
+
+resilience4j.circuitbreaker:
+  instances:
+    getSimilarProductsCircuitBreaker:
+      registerHealthIndicator: true
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000ms
+      slidingWindowSize: 100
+      permittedNumberOfCallsInHalfOpenState: 10
+      minimumNumberOfCalls: 5
