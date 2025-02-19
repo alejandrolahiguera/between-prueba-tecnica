@@ -1,17 +1,32 @@
 # Similar Products API
 
-Este proyecto expone una API REST para obtener productos similares a un producto dado.
+## Description
+This project exposes a REST API to retrieve products similar to a given product.
 
-## Requisitos
-
+## Requirements
 - Java 21
+- Gradle 8.0 or later
 - Docker
 
-## Ejecución
+## Build and Run
 
-### 1. **Compilar el proyecto:**
+### Building the Application
 
-Si usas **Gradle**, puedes compilar el proyecto con el siguiente comando:
+1. **Clean and Install:**
 
-```bash
-./gradlew clean build
+   ```bash
+   ./gradlew clean install
+
+2. **Build:**
+
+   ```bash
+   ./gradlew bootJar
+
+3. **Run from JAR:**
+
+   ```bash
+   java -jar build/libs/pruebatenica-0.0.1.jar
+
+This `README.md` provides a concise overview of the project, how to set it up, and how to run it.
+
+Let me know if you want to make any modifications!
