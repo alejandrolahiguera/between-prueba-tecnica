@@ -23,13 +23,14 @@ public class ProductServiceImpl implements ProductService {
     }
 
     /**
-     * Retrieves a flux of products similar to the one with the given id.
-     * The flux is first cached and then wrapped in a circuit breaker.
-     * If the circuit breaker is open, the method will return a flux containing
-     * no elements.
+     * Retrieves a list of products similar to the given product ID.
      *
-     * @param productId the id of the product for which to retrieve similar items
-     * @return a flux of products similar to the one with the given id
+     * This method fetches similar product IDs from an external service,
+     * retrieves the product details for each ID, and filters out null or invalid products.
+     * It utilizes caching to store the results and a circuit breaker to handle failures gracefully.
+     *
+     * @param productId The ID of the product for which similar products are to be retrieved.
+     * @return A Flux of ProductRetail containing similar products.
      */
     @Override
     @Cacheable(value = CacheConfig.USERS_INFO_CACHE, key = "#productId", unless = "#result == null")
@@ -70,6 +71,17 @@ public class ProductServiceImpl implements ProductService {
                 .flatMap(this::fetchProductDetails);
     }
 
+    /**
+     * Fetches the product details for a given product ID.
+     *
+     * This method sends a GET request to the external product service to
+     * retrieve the details of the product specified by the product ID.
+     * If the product is not found, an empty Mono is returned.
+     * If a server error occurs, an exception is thrown.
+     *
+     * @param productId The ID of the product to be fetched.
+     * @return A Flux of ProductRetail containing the product details.
+     */
     private Flux<ProductRetail> fetchProductDetails(String productId) {
         return this.webClient.get()
                 .uri("/product/{productId}", productId)
