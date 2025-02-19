@@ -14,21 +14,35 @@ This project exposes a REST API to retrieve products similar to a given product.
 
 ### Building the Application
 
-1. **Clean and Install:**
+1. **Clean:**
 
    ```bash
-   ./gradlew clean install
+   ./gradlew clean
+   ```
 
 2. **Build:**
 
    ```bash
    ./gradlew bootJar
+   ```
 
 3. **Run from JAR:**
 
    ```bash
    java -jar build/libs/pruebatenica-0.0.1.jar
+   ```
 
-This `README.md` provides a concise overview of the project, how to set it up, and how to run it.
+## Test
 
-Let me know if you want to make any modifications!
+1. **Run the following command in the folder that was provided with the exercise::**
+
+   ```bash
+   docker-compose up -d simulado influxdb grafana
+   ```
+
+2. **Run tests locally:**
+
+   ```bash
+   ./gradlew test
+   ```
+
