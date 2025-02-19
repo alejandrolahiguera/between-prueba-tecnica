@@ -1,12 +1,12 @@
 package com.between.pruebatenica.products.application;
 
 import com.between.pruebatenica.config.cache.CacheConfig;
-import com.between.pruebatenica.products.domain.ProductNotFoundException;
 import com.between.pruebatenica.products.domain.ProductRetail;
 import com.between.pruebatenica.products.domain.ProductService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -32,22 +32,20 @@ public class ProductServiceImpl implements ProductService {
      * @return a flux of products similar to the one with the given id
      */
     @Override
-    @Cacheable(value = CacheConfig.USERS_INFO_CACHE, unless = "#result == null")
-    @CircuitBreaker(name = "similarProductsCircuitBreaker", fallbackMethod = "getSimilarProductsFallback")
+    @Cacheable(value = CacheConfig.USERS_INFO_CACHE, key = "#productId", unless = "#result == null")
+    @CircuitBreaker(name = "similarProducts", fallbackMethod = "fallbackSimilarProducts")
     public Flux<ProductRetail> getSimilarProducts(String productId) {
         return this.webClient.get()
                 .uri("/product/{productId}/similarids", productId)
                 .retrieve()
                 .bodyToFlux(String.class)
                 .flatMap(this::getProductDetailsByProductId)
-                .filter(product -> product != null && product.id() != null);
+                .filter(product -> product != null && product.id() != null)
+                .onErrorResume(e -> Flux.empty());
     }
 
-    private Flux<ProductRetail> getSimilarProductsFallback(String productId, Throwable throwable) {
-        throw new ProductNotFoundException(
-                "Failed to retrieve similar products for productId: " + productId + ". Reason: " + throwable.getMessage(),
-                throwable
-        );
+    private Flux<ProductRetail> fallbackSimilarProducts() {
+        return Flux.empty();
     }
 
     private Flux<ProductRetail> getProductDetailsByProductId(String productIds) {
@@ -76,10 +74,10 @@ public class ProductServiceImpl implements ProductService {
         return this.webClient.get()
                 .uri("/product/{productId}", productId)
                 .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError,
+                .onStatus(status -> status.isSameCodeAs(HttpStatus.NOT_FOUND),
                         response -> Mono.empty())
                 .onStatus(HttpStatusCode::is5xxServerError,
-                        response -> Mono.empty())
+                        response -> Mono.error(new RuntimeException("Server error for product: " + productId)))
                 .bodyToFlux(ProductRetail.class);
     }
 
