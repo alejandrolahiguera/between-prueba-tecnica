@@ -17,7 +17,7 @@ public class CacheConfig {
     @Value("${cache.users.info.ttl:5}")
     private long cacheUsersInfoTtl;
 
-    @Value("${cache.users.info.max-size:5}")
+    @Value("${cache.users.info.max-size:10}")
     private long cacheUsersInfoMaxSize;
 
     public static final String USERS_INFO_CACHE = "USERS_INFO_CACHE";
