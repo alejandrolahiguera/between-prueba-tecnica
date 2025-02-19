@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 @EnableCaching
 public class CacheConfig {
 
-    @Value("${cache.users.info.ttl:2}")
+    @Value("${cache.users.info.ttl:5}")
     private long cacheUsersInfoTtl;
 
     @Value("${cache.users.info.max-size:5}")
