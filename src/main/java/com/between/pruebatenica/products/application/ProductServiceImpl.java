@@ -18,7 +18,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final WebClient webClient;
 
-    public ProductServiceImpl(WebClient.Builder webClientBuilder, @Value("${external.product-service.base-url:5000}") String baseUrl) {
+    public ProductServiceImpl(WebClient.Builder webClientBuilder, @Value("${external.product-service.base-url:3001}") String baseUrl) {
         this.webClient = webClientBuilder.baseUrl(baseUrl).build();
     }
 
