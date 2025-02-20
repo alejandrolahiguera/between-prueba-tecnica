@@ -34,7 +34,7 @@ This project exposes a REST API to retrieve products similar to a given product.
 
 ## Test
 
-1. **Run the following command in the folder that was provided with the exercise::**
+1. **Run the following command in the folder that was provided with the exercise:**
 
    ```bash
    docker-compose up -d simulado influxdb grafana
